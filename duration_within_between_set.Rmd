@@ -1,0 +1,210 @@
+---
+title: "Duration"
+output: html_notebook
+---
+
+# Duration
+
+```{r}
+rm(list = ls())
+
+```
+
+```{r}
+library(nnls)
+library(Libra)
+library(dplyr) # fors stat
+library(psych)
+library(dunn.test)
+library(here)
+library(RVAideMemoire)
+library(rstatix)
+
+
+library(stats)
+library("report")
+library(multcomp)
+library(multcompView)
+
+# figure
+library(ggplot2)
+library(ggpubr)
+library(ggbeeswarm)
+library(here)
+
+library(hrbrthemes)
+```
+
+```{r}
+common_path = "E:/common_path"
+# compiled angle
+```
+
+## Duration within set data 
+
+```{r}
+firstSet_dur.df = read.csv(here(common_path,"stat/duration/firstSet_Dur.csv"))
+secondSet_dur.df = read.csv(here(common_path,"stat/duration/secondSet_Dur.csv"))
+thirdsSet_dur.df = read.csv(here(common_path,"stat/duration/thirdSet_Dur.csv"))
+fourthSet_dur.df = read.csv(here(common_path,"stat/duration/fourthSet_Dur.csv"))
+fifthSet_dur.df = read.csv(here(common_path,"stat/duration/fifthSet_Dur.csv"))
+
+head(firstSet_dur.df)
+```
+
+
+
+```{r}
+
+fig1 = ggplot(firstSet_dur.df,aes(x = firstSet_dur.df$flight[flight=="TF_one"], y = duration, fill =  firstSet_dur.df$flight[flight=="TF_one"])) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() + scale_fill_brewer(palette = "Set1") + ylim(0,4000)
+
+#ggsave(here(common_path,"stat/within_set/set1_wtnSet_dur.tiff"), width = 5, height = 4,fig1,  dpi=700)
+
+
+fig2 = ggplot(secondSet_dur.df,aes(x = flight, y = duration, fill = flight)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() + scale_fill_brewer(palette = "Set1") + ylim(0,4000)
+
+#ggsave(here(common_path,"stat/within_set/set2_wtnSet_dur.tiff"), width = 5, height = 4,fig2,  dpi=700)
+
+
+fig3 = ggplot(thirdsSet_dur.df,aes(x = flight, y = duration, fill = flight)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() + scale_fill_brewer(palette = "Set1") + ylim(0,4000)
+
+#ggsave(here(common_path,"stat/within_set/set3_wtnSet_dur.tiff"), width = 5, height = 4,fig3,  dpi=700)
+
+fig4 = ggplot(fourthSet_dur.df,aes(x = flight, y = duration, fill = flight)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() + scale_fill_brewer(palette = "Set1") + ylim(0,4000)
+
+#ggsave(here(common_path,"stat/within_set/set4_wtnSet_dur.tiff"), width = 5, height = 4,fig4,  dpi=700)
+
+fig5 = ggplot(fifthSet_dur.df,aes(x = flight, y = duration, fill = flight)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() + scale_fill_brewer(palette = "Set1") + ylim(0,3500)
+
+#ggsave(here(common_path,"stat/within_set/set5_wtnSet_dur.tiff"), width = 5, height = 4,fig5,  dpi=700)
+
+
+```
+
+```{r}
+sw_set1_dur = RVAideMemoire::byf.shapiro(duration ~ as.factor(flight),
+                                                data=firstSet_dur.df)
+
+sw_set2_dur = RVAideMemoire::byf.shapiro(duration ~ as.factor(flight),
+                                                data=secondSet_dur.df)
+
+sw_set3_dur = RVAideMemoire::byf.shapiro(duration ~ as.factor(flight),
+                                                data=thirdsSet_dur.df)
+
+sw_set4_dur = RVAideMemoire::byf.shapiro(duration ~ as.factor(flight),
+                                                data=fourthSet_dur.df)
+
+sw_set5_dur = RVAideMemoire::byf.shapiro(duration ~ as.factor(flight),
+                                                data=fifthSet_dur.df)
+
+
+```
+
+```{r}
+set1_mwu_compare = wilcox_test(firstSet_dur.df,duration ~ flight)
+set2_mwu_compare = wilcox_test(secondSet_dur.df,duration ~ flight)
+set3_mwu_compare = wilcox_test(thirdsSet_dur.df,duration ~ flight)
+set4_mwu_compare = wilcox_test(fourthSet_dur.df,duration ~ flight)
+set5_mwu_compare = wilcox_test(fifthSet_dur.df,duration ~ flight)
+
+```
+
+## Duration between set
+
+```{r between_set_duration}
+learning_flight = rbind(firstSet_dur.df[firstSet_dur.df$flight == "LF_one",],
+                   secondSet_dur.df[secondSet_dur.df$flight == "LF_two",],
+                   thirdsSet_dur.df[thirdsSet_dur.df$flight == "LF_three",],
+                   fourthSet_dur.df[fourthSet_dur.df$flight == "LF_four",],
+                   fifthSet_dur.df[fifthSet_dur.df$flight == "LF_five",])
+
+test_flight = rbind(firstSet_dur.df[firstSet_dur.df$flight == "TF_one",],
+                   secondSet_dur.df[secondSet_dur.df$flight == "TF_two",],
+                   thirdsSet_dur.df[thirdsSet_dur.df$flight == "TF_three",],
+                   fourthSet_dur.df[fourthSet_dur.df$flight == "TF_four",],
+                   fifthSet_dur.df[fifthSet_dur.df$flight == "TF_five",])
+                   
+```
+
+```{r}
+learning_flight$set = factor(learning_flight$set,
+                             levels = c("one", "two", "three", "four", "five"))
+
+fig_lf_dur = ggplot(learning_flight, aes(x = set, y = duration, fill = set)) +
+  geom_boxplot(outlier.color = "black") + geom_beeswarm() + scale_fill_brewer(palette = "Set1") + ylim(0, 4000)
+
+ggsave(here(common_path,"stat/lf_duration.tiff"), width = 5, height = 4,fig_lf_dur,  dpi=700)
+
+test_flight$set = factor(test_flight$set, levels = c("one", "two", "three", "four", "five"))
+
+fig_tf_dur = ggplot(test_flight, aes(x = set, y = duration, fill = set)) +
+  geom_boxplot(outlier.color = "black") + geom_beeswarm() + scale_fill_brewer(palette = "Set1") + ylim(0, 800)
+
+ggsave(here(common_path,"stat/tf_duration.tiff"), width = 5, height = 4,fig_tf_dur,  dpi=700)
+
+
+```
+
+
+```{r between set sw test}
+sw_LF_dur = RVAideMemoire::byf.shapiro(duration ~ as.factor(set),
+                                                data=learning_flight)
+sw_LF_dur_result = sw_LF_dur$tab
+
+write.csv(sw_LF_dur_result,here(common_path,"stat/between_set/sw_LF_dur_result.csv"))
+
+sw_TF_dur = RVAideMemoire::byf.shapiro(duration ~ as.factor(set),
+                                                data=test_flight)
+
+sw_TF_dur_result = sw_TF_dur$tab
+write.csv(sw_TF_dur_result,here(common_path,"stat/between_set/sw_TF_dur_result.csv"))
+
+```
+
+```{r leven test}
+levene_test_LF = levene_test(learning_flight,duration~as.factor(set))
+write.csv(levene_test_LF,here(common_path,"stat/between_set/levene_test_LF.csv"))
+
+levene_test_TF = levene_test(test_flight,duration~as.factor(set))
+write.csv(levene_test_TF,here(common_path,"stat/between_set/levene_test_TF.csv"))
+
+```
+
+```{r}
+anova_LF_dur = aov(duration~set,data = learning_flight)
+x = summary(anova_LF_dur)
+
+tk_LF_dur = TukeyHSD(anova_LF_dur)
+write.csv(tk_LF_dur$set,here(common_path,"stat/between_set/tukey_LF_dur.csv"))
+
+anova_TF_dur = aov(duration~set,data = test_flight)
+write.csv(anova_TF_dur,here(here(common_path,"stat/between_set/anova_TF_dur.csv")))
+summary(anova_TF_dur)
+
+
+tk_TF_dur = TukeyHSD(anova_TF_dur)
+write.csv(tk_TF_dur$set,here(common_path,"stat/between_set/tukey_TF_dur.csv"))
+
+```
+
+```{r}
+get_cld = function(data_sets){
+  MultComp <- multcompLetters(extract_p(data_sets))
+  set <- names(MultComp$Letters)
+  Labels <- MultComp$Letters
+  df <- data.frame(set, Labels)
+  return(df)
+  }
+
+get_cld(tk_LF_dur$set)
+
+get_cld(tk_TF_dur$set)
+
+```
+
+

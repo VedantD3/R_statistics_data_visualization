@@ -1,0 +1,80 @@
+---
+title: "Comparing two-cylinder condition with clutter"
+output: html_notebook
+---
+
+```{r}
+rm(list = ls())
+```
+
+```{r}
+library(nnls)
+library(Libra)
+library(dplyr) # fors stat
+library(psych)
+library(dunn.test)
+library(here)
+library(RVAideMemoire)
+library(rstatix)
+
+
+library(stats)
+library("report")
+library(multcomp)
+library(multcompView)
+
+# figure
+library(ggplot2)
+library(ggpubr)
+library(ggbeeswarm)
+library(here)
+
+library(hrbrthemes)
+```
+
+```{r}
+common_path = "E:/common_path"
+
+```
+
+```{r}
+clutter_lf1= read.csv(here(common_path,"comparison_data/first_lf_exit_data_compiled.csv"))
+two_rod_cond = read.csv(here(common_path,"comparison_data/two_rods_compiled_data.csv"))
+clutter = cbind(rep("clutter",nrow(clutter_lf1)))
+two_rod = cbind(rep("two_rod",nrow(two_rod_cond)))
+condition = rbind(clutter,two_rod)
+time = rbind(cbind(clutter_lf1$time),cbind(two_rod_cond$time))
+
+compare_data = cbind(data.frame(condition),data.frame(time))
+
+
+```
+
+```{r}
+fig = ggplot(compare_data,aes(x = condition, y = time, fill = condition)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() + scale_fill_brewer(palette = "Set1")
+
+#ggsave(here(common_path,"comparison_data/compared_clutter_twoRod.tiff"), width = 5, height = 4,fig,  dpi=700)
+
+
+```
+
+```{r sw test}
+sw_compared_data = RVAideMemoire::byf.shapiro(time ~ as.factor(condition),
+                                                data=compare_data)
+data.frame(sw_compared_data$tab)
+```
+```{r}
+levene_test(compare_data,time ~ as.factor(condition)) # variance not heterigeneous
+```
+
+
+```{r}
+x = wilcox.test(compare_data$time[compare_data$condition=="clutter"],
+            compare_data$time[compare_data$condition == "two_rod"],paired = FALSE)
+wilcox_test(compare_data,time ~ (condition))
+```
+
+
+
+

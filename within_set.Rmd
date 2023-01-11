@@ -1,0 +1,789 @@
+---
+title: "Within set comparison"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+# Horizontal angle
+ 
+```{r}
+rm(list = ls())
+```
+
+
+```{r}
+library(nnls)
+library(Libra)
+library(dplyr) # fors stat
+library(psych)
+library(dunn.test)
+library(here)
+library(RVAideMemoire)
+library(rstatix)
+library(moments)
+
+library(stats)
+library("report")
+library(multcomp)
+library(multcompView)
+
+# figure
+library(ggplot2)
+library(ggpubr)
+library(ggbeeswarm)
+library(here)
+
+library(hrbrthemes)
+
+```
+
+## Getting horizontal data
+
+```{r}
+common_path = "E:/common_path"
+# compiled angle
+cmpld_data = read.csv(here(common_path,"compiled_data_june_april.csv"))
+head(cmpld_data)
+```
+
+```{r}
+
+mean_dur_one_TF = mean(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "one"])
+sd_dur_one_TF = sd(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "one"])
+
+median(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "one"])
+
+mean_dur_two_TF = mean(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "two"])
+sd_dur_two_TF = sd(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "two"])
+
+mean_dur_three_TF = mean(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "three"])
+sd_dur_three_TF = sd(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "three"])
+
+mean_dur_four_TF = mean(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "four"])
+sd_dur_four_TF = sd(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "four"])
+
+mean_dur_five_TF = mean(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "five"])
+sd_dur_five_TF = sd(cmpld_data$duration[cmpld_data$flight=="test" & cmpld_data$number == "five"])
+
+
+
+```
+
+
+```{r horizontal angle_set seperation}
+firstSet_horzAng.df = read.csv(here(common_path,"stat/horz_ang/firstSet_Horz.csv"))
+secondSet_horzAng.df = read.csv(here(common_path,"stat/horz_ang/secondSet_Horz.csv"))
+thirdSet_horzAng.df = read.csv(here(common_path,"stat/horz_ang/thirdSet_Horz.csv"))
+fourthSet_horzAng.df = read.csv(here(common_path,"stat/horz_ang/fourthtSet_Horz.csv"))
+fifthSet_horzAng.df = read.csv(here(common_path,"stat/horz_ang/fifthSet_Horz.csv"))
+
+```
+
+
+
+```{r read arena circumference data}
+arena_circumData = read.csv(here(common_path,"areana_circum_dist.csv"))
+
+max_dist = max(arena_circumData$nest_circum_dist)
+max_distangle = arena_circumData$angle[arena_circumData$nest_circum_dist == max_dist]
+
+min_dist = min(arena_circumData$nest_circum_dist)
+min_distangle = arena_circumData$angle [arena_circumData$nest_circum_dist == min_dist]
+
+```
+
+## plotting horizontal data
+
+```{r box-plots within set horizontal angle}
+fig1 = ggplot(firstSet_horzAng.df,aes(x=flight_angle, y = angle, fill = flight_angle)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +
+  facet_grid(~set) + scale_fill_brewer(palette = "Set1") + ylim(0,360) + 
+  geom_hline(yintercept = max_distangle, color = "blue", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_distangle, color = "red", size = 1,linetype = "dashed")
+
+ggsave(here(common_path,"stat/within_set/set1_wtnSet_HA.tiff"), width = 5, height = 4,fig1,  dpi=700)
+
+fig2 = ggplot(secondSet_horzAng.df,aes(x=flight_angle, y = angle, fill = flight_angle)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm(size = 2) +
+  facet_grid(~set) + scale_fill_brewer(palette = "Set1") + ylim(0,360) +
+  geom_hline(yintercept = max_distangle, color = "blue", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_distangle, color = "red", size = 1,linetype = "dashed")
+
+ggsave(here(common_path,"stat/within_set/set2_wtnSet_HA.tiff"), width = 5, height = 4,fig2,  dpi=700)
+
+
+fig3 = ggplot(thirdSet_horzAng.df,aes(x=flight_angle, y = angle, fill = flight_angle)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +
+  facet_grid(~set) + scale_fill_brewer(palette = "Set1") + ylim(0,360) + 
+  geom_hline(yintercept = max_distangle, color = "blue", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_distangle, color = "red", size = 1,linetype = "dashed")
+
+ggsave(here(common_path,"stat/within_set/set3_wtnSet_HA.tiff"), width = 5, height = 4,fig3,  dpi=700)
+
+
+fig4 = ggplot(fourthSet_horzAng.df,aes(x=flight_angle, y = angle, fill = flight_angle)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +
+  facet_grid(~set) + scale_fill_brewer(palette = "Set1") + ylim(0,360) +
+  geom_hline(yintercept = max_distangle, color = "blue", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_distangle, color = "red", size = 1,linetype = "dashed")
+
+ggsave(here(common_path,"stat/within_set/set4_wtnSet_HA.tiff"), width = 5, height = 4,fig4,  dpi=700)
+
+
+fig5 = ggplot(fifthSet_horzAng.df,aes(x=flight_angle, y = angle, fill = flight_angle)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm(size = 2) +
+  facet_grid(~set) + scale_fill_brewer(palette = "Set1") + ylim(0,360) + 
+  geom_hline(yintercept = max_distangle, color = "blue", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_distangle, color = "red", size = 1,linetype = "dashed")
+
+ggsave(here(common_path,"stat/within_set/set5_wtnSet_HA.tiff"), width = 5, height = 4,fig5,  dpi=700)
+
+```
+
+## stat
+```{r ANOVA}
+# 1 
+anova_Set1_WtnSet = aov(angle ~ flight_angle, data = firstSet_horzAng.df)
+# 2
+anova_Set2_WtnSet = aov(angle ~ flight_angle, data = secondSet_horzAng.df)
+#3
+anova_Set3_WtnSet = aov(angle ~ flight_angle, data = thirdSet_horzAng.df)
+#4
+anova_Set4_WtnSet = aov(angle ~ flight_angle, data = fourthSet_horzAng.df)
+
+anova_Set5_WtnSet = aov(angle ~ flight_angle, data = fifthSet_horzAng.df)
+
+anova_result = rbind((summary(anova_Set1_WtnSet)),
+                 (summary(anova_Set2_WtnSet)),
+                 (summary(anova_Set3_WtnSet)),
+                 (summary(anova_Set4_WtnSet))
+                 (summary(anova_Set5_WtnSet)))
+```
+
+```{r tukeys test}
+tk_Set1_WtnSet = TukeyHSD(anova_Set1_WtnSet)
+tk_Set2_WtnSet = TukeyHSD(anova_Set2_WtnSet)
+tk_Set3_WtnSet = TukeyHSD(anova_Set3_WtnSet)
+tk_Set4_WtnSet = TukeyHSD(anova_Set4_WtnSet)
+tk_Set5_WtnSet = TukeyHSD(anova_Set5_WtnSet)
+
+write.csv(tk_Set1_WtnSet$flight_angle,
+          here(common_path,"stat/within_set/tk_Set1_WtnSet.csv"))
+
+write.csv(tk_Set2_WtnSet$flight_angle,
+          here(common_path,"stat/within_set/tk_Set2_WtnSet.csv"))
+
+write.csv(tk_Set3_WtnSet$flight_angle,
+          here(common_path,"stat/within_set/tk_Set3_WtnSet.csv"))
+
+write.csv(tk_Set4_WtnSet$flight_angle,
+          here(common_path,"stat/within_set/tk_Set4_WtnSet.csv"))
+
+write.csv(tk_Set5_WtnSet$flight_angle,
+          here(common_path,"stat/within_set/tk_Set5_WtnSet.csv"))
+
+
+tk_result = rbind(tk_Set1_WtnSet$flight_angle, tk_Set2_WtnSet$flight_angle, 
+                  tk_Set3_WtnSet$flight_angle, tk_Set4_WtnSet$flight_angle, tk_Set5_WtnSet$flight_angle)
+
+titles = rbind(cbind(rep("set1",nrow(tk_Set1_WtnSet$flight_angle))),
+               cbind(rep("set2",nrow(tk_Set2_WtnSet$flight_angle))),
+               cbind(rep("set3",nrow(tk_Set3_WtnSet$flight_angle))),
+               cbind(rep("set4",nrow(tk_Set4_WtnSet$flight_angle))),
+               cbind(rep("set5",nrow(tk_Set5_WtnSet$flight_angle))))
+
+tk_result = data.frame(cbind(titles, tk_result))
+write.csv(tk_result,here(common_path,"stat/within_set/tukeys_compiled_wtnSet.csv"))
+
+```
+
+```{r cld}
+get_cld = function(data_sets){
+  MultComp <- multcompLetters(extract_p(data_sets))
+  set <- names(MultComp$Letters)
+  Labels <- MultComp$Letters
+  df <- data.frame(set, Labels)
+  return(df)
+  }
+
+tk_Set1_WtnSet = TukeyHSD(anova_Set1_WtnSet)
+tk_Set2_WtnSet = TukeyHSD(anova_Set2_WtnSet)
+tk_Set3_WtnSet = TukeyHSD(anova_Set3_WtnSet)
+tk_Set4_WtnSet = TukeyHSD(anova_Set4_WtnSet)
+tk_Set5_WtnSet = TukeyHSD(anova_Set5_WtnSet)
+
+cld_Set1_wtnSet = get_cld(tk_Set1_WtnSet$flight_angle)
+write.csv(cld_Set1_wtnSet,
+          here(common_path,"stat/within_set/1_cld_set1_wtnSet.csv"))
+
+cld_Set2_wtnSet = get_cld(tk_Set2_WtnSet$flight_angle)
+write.csv(cld_Set2_wtnSet,
+          here(common_path,"stat/within_set/2_cld_set2_wtnSet.csv"))
+
+cld_Set3_wtnSet = get_cld(tk_Set3_WtnSet$flight_angle)
+write.csv(cld_Set3_wtnSet,
+          here(common_path,"stat/within_set/3_cld_set3_wtnSet.csv"))
+
+cld_Set4_wtnSet = get_cld(tk_Set4_WtnSet$flight_angle)
+write.csv(cld_Set4_wtnSet,
+          here(common_path,"stat/within_set/4_cld_set4_wtnSet.csv"))
+
+cld_Set5_wtnSet = get_cld(tk_Set5_WtnSet$flight_angle)
+write.csv(cld_Set5_wtnSet,
+          here(common_path,"stat/within_set/5_cld_set5_wtnSet.csv"))
+```
+
+
+# Vertical angle
+
+```{r}
+rm(list = ls())
+```
+
+
+```{r}
+library(nnls)
+library(Libra)
+library(dplyr) # fors stat
+library(psych)
+library(dunn.test)
+library(here)
+library(RVAideMemoire)
+library(rstatix)
+
+
+library(stats)
+library("report")
+library(multcomp)
+library(multcompView)
+```
+
+
+```{r}
+common_path = "E:/MSc_Bhehaviour/Master_Project/git_clone_stuff/flightaltitude/Compiled_data"
+# compiled angle
+cmpld_data.df = read.csv(here(common_path,"compiled_data_june_april.csv"))
+```
+
+## get data
+```{r vertical angle}
+firstSet_vertAng.df = read.csv(here(common_path,"stat/vert_ang/firstSet_Vert.csv"))
+secondSet_vertAng.df = read.csv(here(common_path,"stat/vert_ang/secondSet_Vert.csv"))
+thirdSet_vertAng.df = read.csv(here(common_path,"stat/vert_ang/thirdSet_Vert.csv"))
+fourthSet_vertAng.df = read.csv(here(common_path,"stat/vert_ang/fourthSet_Vert.csv"))
+fifthSet_vertAng.df = read.csv(here(common_path,"stat/vert_ang/fifthSet_Vert.csv"))
+
+
+```
+
+```{r min-max vertical angle}
+clutter_cornerData = read.csv(here(common_path,"clutterDsitAng_data.csv"))
+max_vertAngle = max(clutter_cornerData$vert_angle)
+min_vertAngle = min(clutter_cornerData$vert_angle)
+
+```
+
+## Plot_Vertical angle
+```{r plot with the min and max vertical angle}
+
+fig1 = ggplot(firstSet_vertAng.df,aes(x=flight_angle, y = angle, fill = flight_angle)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +
+  facet_grid(~set) + scale_fill_brewer(palette = "Set1") + 
+  ylim(0,90) +
+  geom_hline(yintercept = max_vertAngle, color = "#000066", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_vertAngle, color = "#FF0000", size = 1,linetype = "dashed")
+
+
+ggsave(here(common_path,"stat/within_set/set1_wtnSet_VA.tiff"), width = 5, height = 4,fig1,  dpi=700)
+
+fig2 = ggplot(secondSet_vertAng.df,aes(x=flight_angle, y = angle, fill = flight_angle)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm(size = 2) +
+  facet_grid(~set) + scale_fill_brewer(palette = "Set1") + ylim(0,90) + 
+  geom_hline(yintercept = max_vertAngle, color = "#000066", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_vertAngle, color = "#FF0000", size = 1,linetype = "dashed")
+
+ggsave(here(common_path,"stat/within_set/set2_wtnSet_VA.tiff"), width = 5, height = 4,fig2,  dpi=700)
+
+
+fig3 = ggplot(thirdSet_vertAng.df,aes(x=flight_angle, y = angle, fill = flight_angle)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +
+  facet_grid(~set) + scale_fill_brewer(palette = "Set1") + ylim(0,90) + 
+  geom_hline(yintercept = max_vertAngle, color = "#000066", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_vertAngle, color = "#FF0000", size = 1,linetype = "dashed")
+
+ggsave(here(common_path,"stat/within_set/set3_wtnSet_VA.tiff"), width = 5, height = 4,fig3,  dpi=700)
+
+
+fig4 = ggplot(fourthSet_vertAng.df,aes(x=flight_angle, y = angle, fill = flight_angle)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +
+  facet_grid(~set) + scale_fill_brewer(palette = "Set1") + ylim(0,90) + 
+  geom_hline(yintercept = max_vertAngle, color = "#000066", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_vertAngle, color = "#FF0000", size = 1,linetype = "dashed")
+
+ggsave(here(common_path,"stat/within_set/set4_wtnSet_VA.tiff"), width = 5, height = 4,fig4,  dpi=700)
+
+
+fig5 = ggplot(fifthSet_vertAng.df,aes(x=flight_angle, y = angle, fill = flight_angle)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm(size = 2) +
+  facet_grid(~set) + scale_fill_brewer(palette = "Set1") + ylim(0,90) + 
+  geom_hline(yintercept = max_vertAngle, color = "#000066", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_vertAngle, color = "#FF0000", size = 1,linetype = "dashed")
+
+ggsave(here(common_path,"stat/within_set/set5_wtnSet_VA.tiff"), width = 5, height = 4,fig5,  dpi=700)
+
+```
+
+## stat_VA
+
+```{r anova}
+# 1
+anova_Set1_WtnSet = aov(angle ~ flight_angle, data = firstSet_vertAng.df)
+# 2
+anova_Set2_WtnSet = aov(angle ~ flight_angle, data = secondSet_vertAng.df)
+#3
+anova_Set3_WtnSet = aov(angle ~ flight_angle, data = thirdSet_vertAng.df)
+#4
+anova_Set4_WtnSet = aov(angle ~ flight_angle, data = fourthSet_vertAng.df)
+
+anova_Set5_WtnSet = aov(angle ~ flight_angle, data = fifthSet_vertAng.df)
+
+anova_result = c((summary(anova_Set1_WtnSet)),
+                 (summary(anova_Set2_WtnSet)),
+                 (summary(anova_Set3_WtnSet)),
+                 (summary(anova_Set4_WtnSet)),
+                 summary(anova_Set5_WtnSet))
+```
+```{r}
+mean(fifthSet_vertAng.df$angle [fifthSet_vertAng.df$flight_angle == "TF_five_LEn_VA"])
+sd (fifthSet_vertAng.df$angle [fifthSet_vertAng.df$flight_angle == "TF_five_LEn_VA"])
+
+```
+
+
+```{r TukeyHSD}
+tk_Set1_WtnSet = TukeyHSD(anova_Set1_WtnSet)
+tk_Set2_WtnSet = TukeyHSD(anova_Set2_WtnSet)
+tk_Set3_WtnSet = TukeyHSD(anova_Set3_WtnSet)
+tk_Set4_WtnSet = TukeyHSD(anova_Set4_WtnSet)
+tk_Set5_WtnSet = TukeyHSD(anova_Set5_WtnSet)
+
+write.csv(tk_Set1_WtnSet$flight_angle,
+          here(common_path,"stat/within_set/tk_Set1_WtnSet.csv"))
+
+write.csv(tk_Set2_WtnSet$flight_angle,
+          here(common_path,"stat/within_set/tk_Set2_WtnSet.csv"))
+
+write.csv(tk_Set3_WtnSet$flight_angle,
+          here(common_path,"stat/within_set/tk_Set3_WtnSet.csv"))
+
+write.csv(tk_Set4_WtnSet$flight_angle,
+          here(common_path,"stat/within_set/tk_Set4_WtnSet.csv"))
+
+write.csv(tk_Set5_WtnSet$flight_angle,
+          here(common_path,"stat/within_set/tk_Set5_WtnSet.csv"))
+
+
+tk_result = rbind(tk_Set1_WtnSet$flight_angle, tk_Set2_WtnSet$flight_angle, 
+                  tk_Set3_WtnSet$flight_angle, tk_Set4_WtnSet$flight_angle, tk_Set5_WtnSet$flight_angle)
+
+titles = rbind(cbind(rep("set1",nrow(tk_Set1_WtnSet$flight_angle))),
+               cbind(rep("set2",nrow(tk_Set2_WtnSet$flight_angle))),
+               cbind(rep("set3",nrow(tk_Set3_WtnSet$flight_angle))),
+               cbind(rep("set4",nrow(tk_Set4_WtnSet$flight_angle))),
+               cbind(rep("set5",nrow(tk_Set5_WtnSet$flight_angle))))
+
+tk_result = data.frame(cbind(titles, tk_result))
+write.csv(tk_result,here(common_path,"stat/within_set/tukeys_compiled_wtnSet.csv"))
+
+```
+
+```{r cld vertical angle}
+get_cld = function(data_sets){
+  MultComp <- multcompLetters(extract_p(data_sets))
+  set <- names(MultComp$Letters)
+  Labels <- MultComp$Letters
+  df <- data.frame(set, Labels)
+  return(df)
+  }
+
+tk_Set1_WtnSet = TukeyHSD(anova_Set1_WtnSet)
+tk_Set2_WtnSet = TukeyHSD(anova_Set2_WtnSet)
+tk_Set3_WtnSet = TukeyHSD(anova_Set3_WtnSet)
+tk_Set4_WtnSet = TukeyHSD(anova_Set4_WtnSet)
+tk_Set5_WtnSet = TukeyHSD(anova_Set5_WtnSet)
+
+cld_Set1_wtnSet = get_cld(tk_Set1_WtnSet$flight_angle)
+write.csv(cld_Set1_wtnSet,
+          here(common_path,"stat/within_set/1_cld_set1_wtnSet.csv"))
+
+cld_Set2_wtnSet = get_cld(tk_Set2_WtnSet$flight_angle)
+write.csv(cld_Set2_wtnSet,
+          here(common_path,"stat/within_set/2_cld_set2_wtnSet.csv"))
+
+cld_Set3_wtnSet = get_cld(tk_Set3_WtnSet$flight_angle)
+write.csv(cld_Set3_wtnSet,
+          here(common_path,"stat/within_set/3_cld_set3_wtnSet.csv"))
+
+cld_Set4_wtnSet = get_cld(tk_Set4_WtnSet$flight_angle)
+write.csv(cld_Set4_wtnSet,
+          here(common_path,"stat/within_set/4_cld_set4_wtnSet.csv"))
+
+cld_Set5_wtnSet = get_cld(tk_Set5_WtnSet$flight_angle)
+write.csv(cld_Set5_wtnSet,
+          here(common_path,"stat/within_set/5_cld_set5_wtnSet.csv"))
+```
+
+
+# number of exit entries from below above
+
+```{r}
+rm(list = ls())
+
+```
+
+```{r}
+library(nnls)
+library(Libra)
+library(dplyr) # fors stat
+library(psych)
+library(dunn.test)
+library(here)
+library(RVAideMemoire)
+library(rstatix)
+
+
+library(stats)
+library("report")
+library(multcomp)
+library(multcompView)
+
+# figure
+library(ggplot2)
+library(ggpubr)
+library(ggbeeswarm)
+library(here)
+
+library(hrbrthemes)
+```
+ 
+ 
+```{r read files}
+common_path = "E:/MSc_Bhehaviour/Master_Project/git_clone_stuff/flightaltitude/Compiled_data"
+
+all_exit_data = read.csv(here(common_path,"compiled_AllExitData.csv"))
+all_entry_data = read.csv(here(common_path,"compiled_AllEntryData.csv"))
+
+head(all_exit_data)
+```
+
+```{r}
+sorted_exitentry_data = function (set) {
+  LF_exit = all_exit_data [all_exit_data$flight == "learn" &
+                             all_exit_data$set == set,]
+  LF_entry = all_entry_data [all_entry_data$flight == "learn" &
+                               all_entry_data$set == set,]
+  TF_exit = all_exit_data [all_exit_data$flight == "test" &
+                             all_exit_data$set == set,]
+  TF_entry = all_entry_data [all_entry_data$flight == "test" &
+                               all_entry_data$set == set,]
+  
+  flights = rbind(cbind(rep("LF_exit", nrow(LF_exit))),
+                  cbind(rep("LF_entry", nrow(LF_entry))),
+                  cbind(rep("TF_exit", nrow(TF_exit))),
+                  cbind(rep("TF_entry", nrow(TF_entry))))
+  
+  
+  LF_data = rbind(LF_exit, LF_entry, TF_exit, TF_entry)
+  LF_data = cbind(flights, LF_data)
+  
+  return(LF_data)
+  
+}
+```
+
+```{r}
+get_boxplot = function (LF_data) {
+  fig = ggplot(LF_data, aes(x = flights, y = vert_angle, fill = flights)) +
+    geom_boxplot(outlier.color = "black") + geom_beeswarm(size=1,) +
+    facet_grid( ~ set) + scale_fill_brewer(palette = "Set1") +
+    ylim(0, 90)
+  
+  return(fig)
+}  
+```
+
+```{r}
+clutter_cornerData = read.csv(here(common_path,"clutterDsitAng_data.csv"))
+max_vertAngle = max(clutter_cornerData$vert_angle)
+min_vertAngle = min(clutter_cornerData$vert_angle)
+
+```
+
+
+```{r}
+
+get_below_above_va_data = function(set_nth, flight) {
+  nth_LF_data = sorted_exitentry_data(set_nth)
+  
+  nth_LF_data_below = nth_LF_data[nth_LF_data$flights == flight &
+                                 nth_LF_data$vert_angle < min_vertAngle, ]
+  
+  recordings_below = unique(nth_LF_data_below$recording)
+  
+  obs_num_below = c()
+  
+  # points from bellow the line
+  for (ii in recordings_below) {
+    iith_obs_num = length(nth_LF_data_below$vert_angle[nth_LF_data_below$recording == ii])
+    obs_num_below[length(obs_num_below) + 1] = iith_obs_num
+    #append(obs_num_below,iith_obs_num)
+  }
+  
+  nth_LF_data_above = nth_LF_data[nth_LF_data$flights == flight &
+                                 nth_LF_data$vert_angle > max_vertAngle, ]
+  recordings_above = unique(nth_LF_data_above$recording)
+  length(recordings_above)
+  
+  # points from above the line
+  obs_num_above = c()
+  for (ii in recordings_above) {
+    iith_obs_num = length(nth_LF_data_above$vert_angle[nth_LF_data_above$recording == ii])
+    obs_num_above[length(obs_num_above) + 1] = iith_obs_num
+  }
+  
+  condition = c(c(rep("side", length(obs_num_below))),
+                  c(rep("top", length(obs_num_above))))
+                  
+  numbers = c(obs_num_below,obs_num_above)
+  df_above_below = cbind(data.frame(condition),data.frame(numbers))
+  
+  return(df_above_below)
+}
+
+```
+
+```{r}
+
+set_one = "one"
+flight = "LF_exit"
+LF1_va_exit_below_above = get_below_above_va_data(set_one,flight)
+
+num_above = sum(LF1_va_exit_below_above$numbers[LF1_va_exit_below_above$condition == "top"])
+num_below = sum(LF1_va_exit_below_above$numbers[LF1_va_exit_below_above$condition == "side"])
+
+
+ggplot(LF1_va_exit_below_above,
+       aes(x = condition, y = numbers, fill = condition)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +  scale_fill_brewer(palette = "Set1")
+
+
+
+```
+
+```{r}
+sw_compared_data = RVAideMemoire::byf.shapiro(numbers ~ as.factor(condition),
+                                                data=LF1_va_exit_below_above)
+levene_test(LF1_va_exit_below_above,numbers ~ as.factor(condition))
+
+
+```
+```{r}
+wilcox_test(LF1_va_exit_below_above,numbers ~ (condition))
+
+```
+```{r}
+
+```
+
+
+
+```{r}
+set_two = "two"
+flight = "LF_exit"
+LF2_va_exit_below_above = get_below_above_va_data(set_two,flight)
+num_above = sum(LF2_va_exit_below_above$numbers[LF2_va_exit_below_above$condition == "above"])
+num_below = sum(LF2_va_exit_below_above$numbers[LF2_va_exit_below_above$condition == "below"])
+
+
+ggplot(LF2_va_exit_below_above,
+       aes(x = condition, y = numbers, fill = condition)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +  scale_fill_brewer(palette = "Set1")
+
+# sw test
+sw_compared_data = RVAideMemoire::byf.shapiro(numbers ~ as.factor(condition),
+                                                data=LF2_va_exit_below_above)
+# levene test
+levene_test(LF2_va_exit_below_above,numbers ~ as.factor(condition))
+# wilcox test
+wilcox_test(LF2_va_exit_below_above,numbers ~ (condition))
+```
+
+
+```{r}
+set_three = "three"
+flight = "LF_exit"
+LF3_va_exit_below_above = get_below_above_va_data(set_three,flight)
+num_above = sum(LF3_va_exit_below_above$numbers[LF3_va_exit_below_above$condition == "above"])
+num_below = sum(LF3_va_exit_below_above$numbers[LF3_va_exit_below_above$condition == "below"])
+
+
+ggplot(LF3_va_exit_below_above,
+       aes(x = condition, y = numbers, fill = condition)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +  scale_fill_brewer(palette = "Set1")
+
+# sw test
+sw_compared_data = RVAideMemoire::byf.shapiro(numbers ~ as.factor(condition),
+                                                data=LF3_va_exit_below_above)
+# levene test
+levene_test(LF3_va_exit_below_above,numbers ~ as.factor(condition))
+# wilcox test
+wilcox_test(LF3_va_exit_below_above,numbers ~ (condition))
+```
+
+```{r}
+set_four = "four"
+flight = "LF_exit"
+LF4_va_exit_below_above = get_below_above_va_data(set_four,flight)
+num_above = sum(LF4_va_exit_below_above$numbers[LF4_va_exit_below_above$condition == "above"])
+num_below = sum(LF4_va_exit_below_above$numbers[LF4_va_exit_below_above$condition == "below"])
+binom.test(x=num_above, n=(num_above+num_below))
+binom.test(x=num_below, n=(num_above+num_below))
+
+
+ggplot(LF4_va_exit_below_above,
+       aes(x = condition, y = numbers, fill = condition)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +  scale_fill_brewer(palette = "Set1")
+
+# sw test
+sw_compared_data = RVAideMemoire::byf.shapiro(numbers ~ as.factor(condition),
+                                                data=LF4_va_exit_below_above)
+# levene test
+levene_test(LF4_va_exit_below_above,numbers ~ as.factor(condition))
+# wilcox test
+wilcox_test(LF4_va_exit_below_above,numbers ~ (condition))
+```
+
+```{r}
+set_five = "five"
+flight = "LF_exit"
+LF5_va_exit_below_above = get_below_above_va_data(set_five,flight)
+num_above = sum(LF5_va_exit_below_above$numbers[LF5_va_exit_below_above$condition == "above"])
+num_below = sum(LF5_va_exit_below_above$numbers[LF5_va_exit_below_above$condition == "below"])
+
+binom.test(x=num_above, n=(num_above+num_below))
+binom.test(x=num_below, n=(num_above+num_below))
+
+ggplot(LF5_va_exit_below_above,
+       aes(x = condition, y = numbers, fill = condition)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +  scale_fill_brewer(palette = "Set1")
+
+# sw test
+sw_compared_data = RVAideMemoire::byf.shapiro(numbers ~ as.factor(condition),
+                                                data=LF5_va_exit_below_above)
+# levene test
+levene_test(LF5_va_exit_below_above,numbers ~ as.factor(condition))
+# wilcox test
+wilcox_test(LF5_va_exit_below_above,numbers ~ (condition))
+
+```
+```{r}
+
+```
+
+
+```{r}
+set_two = "two"
+LF2_vertAng = sorted_exitentry_data(set_two)
+
+set_three = "three"
+LF3_vertAng = sorted_exitentry_data(set_three)
+
+set_four = 
+```
+
+
+
+# plotting alll vertical angle
+
+
+```{r}
+rm(list = ls())
+
+```
+
+```{r}
+library(nnls)
+library(Libra)
+library(dplyr) # fors stat
+library(psych)
+library(dunn.test)
+library(here)
+library(RVAideMemoire)
+library(rstatix)
+
+
+library(stats)
+library("report")
+library(multcomp)
+library(multcompView)
+
+# figure
+library(ggplot2)
+library(ggpubr)
+library(ggbeeswarm)
+library(here)
+
+library(hrbrthemes)
+
+```
+
+```{r}
+common_path = "E:/common_path"
+
+all_exit_data = read.csv(here(common_path,"compiled_AllExitData.csv"))
+all_entry_data = read.csv(here(common_path,"compiled_AllEntryData.csv"))
+
+head(all_exit_data)
+
+```
+
+```{r}
+sorted_exitentry_data = function (set) {
+  LF_exit = all_exit_data [all_exit_data$flight == "learn" &
+                             all_exit_data$set == set,]
+  LF_entry = all_entry_data [all_entry_data$flight == "learn" &
+                               all_entry_data$set == set,]
+  TF_exit = all_exit_data [all_exit_data$flight == "test" &
+                             all_exit_data$set == set,]
+  TF_entry = all_entry_data [all_entry_data$flight == "test" &
+                               all_entry_data$set == set,]
+  
+  flights = rbind(cbind(rep("LF_exit", nrow(LF_exit))),
+                  cbind(rep("LF_entry", nrow(LF_entry))),
+                  cbind(rep("TF_exit", nrow(TF_exit))),
+                  cbind(rep("TF_entry", nrow(TF_entry))))
+  
+  
+  LF_data = rbind(LF_exit, LF_entry, TF_exit, TF_entry)
+  LF_data = cbind(flights, LF_data)
+  
+  return(LF_data)
+  
+}
+
+```
+
+```{r}
+set_one = "one"
+first_set_df = sorted_exitentry_data(set_one)
+recordings = unique(first_set_df$recording)
+
+a = first_set_df$vert_angle[first_set_df$flights == "LF_entry"]
+b=1:length(a)
+
+plot(b,a)
+```
+
+

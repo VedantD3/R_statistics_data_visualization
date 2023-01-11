@@ -1,0 +1,542 @@
+---
+title: "Between set comparison"
+output: html_notebook
+---
+# Horizontal angle
+
+```{r}
+rm(list = ls())
+```
+
+
+```{r}
+
+library(nnls)
+library(Libra)
+library(dplyr) # fors stat
+library(psych)
+library(dunn.test)
+library(here)
+library(RVAideMemoire)
+library(rstatix)
+
+
+library(stats)
+library("report")
+library(multcomp)
+library(multcompView)
+
+# figure
+library(ggplot2)
+library(ggpubr)
+library(ggbeeswarm)
+library(here)
+
+library(hrbrthemes)
+
+```
+## Getting data
+
+```{r}
+common_path = "E:/common_path"
+# compiled angle
+
+
+```
+
+
+```{r read all horizontal data}
+firstSet_horzAng.df = read.csv(here(common_path,"stat/horz_ang/firstSet_Horz.csv"))
+secondSet_horzAng.df = read.csv(here(common_path,"stat/horz_ang/secondSet_Horz.csv"))
+thirdSet_horzAng.df = read.csv(here(common_path,"stat/horz_ang/thirdSet_Horz.csv"))
+fourthSet_horzAng.df = read.csv(here(common_path,"stat/horz_ang/fourthtSet_Horz.csv"))
+fifthSet_horzAng.df = read.csv(here(common_path,"stat/horz_ang/fifthSet_Horz.csv"))
+
+
+```
+
+### Rearranging
+
+```{r arrange data based on condition}
+
+LF_firstExit_betweenSet = rbind ( firstSet_horzAng.df[firstSet_horzAng.df$flight_angle =="LF_one_FEx_HA",],
+                               secondSet_horzAng.df [secondSet_horzAng.df$flight_angle == "LF_two_FEx_HA",],
+                               thirdSet_horzAng.df [thirdSet_horzAng.df$flight_angle == "LF_three_FEx_HA",],
+                               fourthSet_horzAng.df [fourthSet_horzAng.df$flight_angle == "LF_four_FEx_HA",],
+                               fifthSet_horzAng.df [fifthSet_horzAng.df$flight_angle == "LF_five_FEx_HA",])
+
+LF_lastEntry_betweenSet = rbind(firstSet_horzAng.df[firstSet_horzAng.df$flight_angle =="LF_one_LEn_HA",],
+                               secondSet_horzAng.df [secondSet_horzAng.df$flight_angle == "LF_two_LEn_HA",],
+                               thirdSet_horzAng.df [thirdSet_horzAng.df$flight_angle == "LF_three_LEn_HA",],
+                               fourthSet_horzAng.df [fourthSet_horzAng.df$flight_angle == "LF_four_LEn_HA",],
+                               fifthSet_horzAng.df [fifthSet_horzAng.df$flight_angle == "LF_five_LEn_HA",])
+
+TF_firstEntry_betweenSet = rbind(firstSet_horzAng.df[firstSet_horzAng.df$flight_angle =="TF_one_FEn_HA",],
+                               secondSet_horzAng.df [secondSet_horzAng.df$flight_angle == "TF_two_FEn_HA",],
+                               thirdSet_horzAng.df [thirdSet_horzAng.df$flight_angle == "TF_three_FEn_HA",],
+                               fourthSet_horzAng.df [fourthSet_horzAng.df$flight_angle == "TF_four_FEn_HA",],
+                               fifthSet_horzAng.df [fifthSet_horzAng.df$flight_angle == "TF_five_FEn_HA",])
+
+
+TF_lastEntry_betweenSet = rbind(firstSet_horzAng.df[firstSet_horzAng.df$flight_angle =="TF_one_LEn_HA",],
+                               secondSet_horzAng.df [secondSet_horzAng.df$flight_angle == "TF_two_LEn_HA",],
+                               thirdSet_horzAng.df [thirdSet_horzAng.df$flight_angle == "TF_three_LEn_HA",],
+                               fourthSet_horzAng.df [fourthSet_horzAng.df$flight_angle == "TF_four_LEn_HA",],
+                               fifthSet_horzAng.df [fifthSet_horzAng.df$flight_angle == "TF_five_LEn_HA",])
+
+
+
+```
+
+```{r}
+arena_circumData = read.csv(here(common_path,"areana_circum_dist.csv"))
+
+max_dist = max(arena_circumData$nest_circum_dist)
+max_distangle = arena_circumData$angle[arena_circumData$nest_circum_dist == max_dist]
+
+min_dist = min(arena_circumData$nest_circum_dist)
+min_distangle = arena_circumData$angle [arena_circumData$nest_circum_dist == min_dist]
+
+```
+
+
+## Ploting Horizontal angle
+```{r}
+
+LF_firstExit_betweenSet$set <-
+  factor(LF_firstExit_betweenSet$set ,
+         levels = c("one", "two", "three", "four", "five"))
+
+fig1 = ggplot(LF_firstExit_betweenSet, aes(x = set, y = angle, fill = set)) +
+  geom_boxplot(outlier.color = "black") + geom_beeswarm() + scale_fill_brewer(palette = "Set1") + ylim(0, 360) +
+  geom_hline(
+    yintercept = max_distangle,
+    color = "blue",
+    size = 1,
+    linetype = "dashed"
+  ) +
+  geom_hline(
+    yintercept =  min_distangle,
+    color = "red",
+    size = 1,
+    linetype = "dashed"
+  )
+
+ggsave(
+  here(common_path, "stat/between_set/LF_FEx_btnSet_HA.tiff"),
+  width = 5,
+  height = 4,
+  fig1,
+  dpi = 700
+)
+
+#2
+LF_lastEntry_betweenSet$set <-
+  factor(LF_lastEntry_betweenSet$set ,
+         levels = c("one", "two", "three", "four", "five"))
+
+fig2 = ggplot(LF_lastEntry_betweenSet, aes(x = set, y = angle, fill = set)) +
+  geom_boxplot(outlier.color = "black") + geom_beeswarm(size = 2) +
+  scale_fill_brewer(palette = "Set1") + ylim(0, 360) + 
+  geom_hline(
+    yintercept = max_distangle,
+    color = "blue",
+    size = 1,
+    linetype = "dashed"
+  ) +
+  geom_hline(
+    yintercept =  min_distangle,
+    color = "red",
+    size = 1,
+    linetype = "dashed"
+  )
+
+ggsave(
+  here(common_path, "stat/between_set/LF_LEn_btnSet_HA.tiff"),
+  width = 5,
+  height = 4,
+  fig2,
+  dpi = 700
+)
+
+# 3
+TF_firstEntry_betweenSet$set <-
+  factor(TF_firstEntry_betweenSet$set ,
+         levels = c("one", "two", "three", "four", "five"))
+
+fig3 = ggplot(TF_firstEntry_betweenSet, aes(x = set, y = angle, fill = set)) +
+  geom_boxplot(outlier.color = "black") + geom_beeswarm() +
+  scale_fill_brewer(palette = "Set1") + ylim(0, 360) + 
+  geom_hline(
+    yintercept = max_distangle,
+    color = "blue",
+    size = 1,
+    linetype = "dashed"
+  ) +
+  geom_hline(
+    yintercept =  min_distangle,
+    color = "red",
+    size = 1,
+    linetype = "dashed"
+  )
+
+ggsave(
+  here(common_path, "stat/between_set/TF_FEn_btnSet_HA.tiff"),
+  width = 5,
+  height = 4,
+  fig3,
+  dpi = 700
+)
+
+# 4
+TF_lastEntry_betweenSet$set <-
+  factor(TF_lastEntry_betweenSet$set ,
+         levels = c("one", "two", "three", "four", "five"))
+
+fig4 = ggplot(TF_lastEntry_betweenSet, aes(x = set, y = angle, fill = set)) +
+  geom_boxplot(outlier.color = "black") + geom_beeswarm() +
+  scale_fill_brewer(palette = "Set1") + ylim(0, 360) + 
+  geom_hline(
+    yintercept = max_distangle,
+    color = "blue",
+    size = 1,
+    linetype = "dashed"
+  ) +
+  geom_hline(
+    yintercept =  min_distangle,
+    color = "red",
+    size = 1,
+    linetype = "dashed"
+  )
+
+
+ggsave(
+  here(common_path, "stat/between_set/TF_LEn_btnSet_HA.tiff"),
+  width = 5,
+  height = 4,
+  fig4,
+  dpi = 700
+)
+
+```
+
+## Stat
+
+```{r ANOVA}
+
+# 1 
+anova_LF_FEx_betSet = aov(angle~flight_angle,data = LF_firstExit_betweenSet)
+anova_LF_FEx_betSet  = oneway.test(angle~flight_angle,data = LF_firstExit_betweenSet)
+
+# 2
+anova_LF_LEn_betSet = aov(angle~flight_angle,data = LF_lastEntry_betweenSet)
+anova_LF_LEn_betSet = oneway.test(angle~flight_angle,data = LF_lastEntry_betweenSet)
+#3
+anova_TF_FEn_betSet = aov(angle~flight_angle,data = TF_firstEntry_betweenSet)
+anova_TF_FEn_betSet = oneway.test(angle~flight_angle,data = TF_firstEntry_betweenSet)
+#4
+anova_TF_LEn_betSet = aov(angle~flight_angle,data = TF_lastEntry_betweenSet)
+anova_TF_LEn_betSet = oneway.test(angle~flight_angle,data = TF_lastEntry_betweenSet)
+
+anova_result = c((summary(anova_LF_FEx_betSet)),
+                     (summary(anova_LF_LEn_betSet)),
+                     (summary(anova_TF_FEn_betSet)),
+                     (summary(anova_TF_LEn_betSet)))
+anova_title = rbind(cbind(rep("LF_FEx_HA",nrow(anova_LF_FEx_betSet))),
+                    cbind(rep("LF_LEn_HA",nrow(anova_LF_LEn_betSet))),
+                    cbind(rep("TF_FEn_HA",nrow(anova_TF_FEn_betSet))),
+                    cbind(rep("TF_LEn_HA",nrow(anova_TF_LEn_betSet))))
+
+
+
+#x = lm(angle~set,data = LF_firstExit_betweenSet)
+#summary(x)
+#Anova(x,type = "II")
+#marginal = lsmeans(x,~ set)
+#pairs(marginal,adjust="tukey")
+
+```
+
+```{r}
+anova_LF_FEx_betSet1 = aov(angle~flight_angle,data = LF_lastEntry_betweenSet)
+a = c(summary(anova_LF_FEx_betSet1))
+anova_LF_FEx_betSet1$xlevels
+
+
+```
+
+
+```{r Tukeys test}
+tk_LF_FEx_betSet = TukeyHSD(anova_LF_FEx_betSet)
+tk_LF_LEn_betSet = TukeyHSD(anova_LF_LEn_betSet)
+tk_TF_FEn_betSet = TukeyHSD(anova_TF_FEn_betSet)
+tk_TF_LEn_betSet = TukeyHSD(anova_TF_LEn_betSet)
+
+write.csv(tk_LF_FEx_betSet$flight_angle,
+          here(common_path,"stat/between_set/tuke_LF_firstExit.csv"))
+write.csv(tk_LF_LEn_betSet$flight_angle,
+          here(common_path,"stat/between_set/tuke_LF_lastEntry.csv"))
+write.csv(tk_TF_FEn_betSet$flight_angle,
+          here(common_path,"stat/between_set/tuke_TF_firstEntry.csv"))
+write.csv(tk_TF_LEn_betSet$flight_angle,
+          here(common_path,"stat/between_set/tuke_TF_lastEntry.csv"))
+
+
+tk_result = rbind(tk_LF_FEx_betSet$flight_angle, tk_LF_LEn_betSet$flight_angle, 
+                  tk_TF_FEn_betSet$flight_angle, tk_TF_LEn_betSet$flight_angle)
+
+titles = rbind(cbind(rep("LF_firstExit",nrow(tk_LF_FEx_betSet$flight_angle))),
+               cbind(rep("LF_lastEntry",nrow(tk_LF_LEn_betSet$flight_angle))),
+               cbind(rep("TF_firstEntry",nrow(tk_TF_FEn_betSet$flight_angle))),
+               cbind(rep("TF_lastEntry",nrow(tk_TF_LEn_betSet$flight_angle))))
+
+tk_result = data.frame(cbind(titles, tk_result))
+#write.csv(tk_result,here(common_path,"stat/between_set/tukeys_compiled.csv"))
+
+```
+
+```{r cld_tukeys test}
+get_cld = function(data_sets){
+  MultComp <- multcompLetters(extract_p(data_sets))
+  set <- names(MultComp$Letters)
+  Labels <- MultComp$Letters
+  df <- data.frame(set, Labels)
+  return(df)
+  }
+
+cld_LF_FEx_betSet = get_cld(x$p.adj.signif)
+
+cld_LF_FEx_betSet = get_cld(tk_LF_FEx_betSet$flight_angle)
+write.csv(cld_LF_FEx_betSet,
+          here(common_path,"stat/between_set/1_cld_LF_FEx_betSet.csv"))
+
+cld_LF_FEn_betSet = get_cld(tk_LF_LEn_betSet$flight_angle)
+write.csv(cld_LF_FEn_betSet,
+          here(common_path,"stat/between_set/2_cld_LF_FEn_betSet.csv"))
+
+cld_TF_FEn_betSet = get_cld(tk_TF_FEn_betSet$flight_angle)
+write.csv(cld_TF_FEn_betSet,
+          here(common_path,"stat/between_set/3_cld_TF_FEn_betSet.csv"))
+
+cld_TF_LEn_betSet = get_cld(tk_TF_LEn_betSet$flight_angle)
+write.csv(cld_TF_LEn_betSet,
+          here(common_path,"stat/between_set/4_cld_TF_LEn_betSet.csv"))
+
+```
+# Vertical angle 
+
+```{r vertical_angle}
+rm(list = ls())
+```
+
+```{r}
+library(nnls)
+library(Libra)
+library(dplyr) # fors stat
+library(psych)
+library(dunn.test)
+library(here)
+library(RVAideMemoire)
+library(rstatix)
+
+
+library(stats)
+library("report")
+library(multcomp)
+library(multcompView)
+
+# figure
+library(ggplot2)
+library(ggpubr)
+library(ggbeeswarm)
+library(here)
+
+library(hrbrthemes)
+```
+
+```{r}
+common_path = "E:/common_path"
+
+```
+
+## Getting data
+
+```{r vertical angle}
+firstSet_vertAng.df = read.csv(here(common_path,"stat/vert_ang/firstSet_Vert.csv"))
+secondSet_vertAng.df = read.csv(here(common_path,"stat/vert_ang/secondSet_Vert.csv"))
+thirdSet_vertAng.df = read.csv(here(common_path,"stat/vert_ang/thirdSet_Vert.csv"))
+fourthSet_vertAng.df = read.csv(here(common_path,"stat/vert_ang/fourthSet_Vert.csv"))
+fifthSet_vertAng.df = read.csv(here(common_path,"stat/vert_ang/fifthSet_Vert.csv"))
+
+```
+
+
+```{r}
+LF_firstExit_betweenSet = rbind ( firstSet_vertAng.df [firstSet_vertAng.df$flight_angle =="LF_one_FEx_VA",],
+                               secondSet_vertAng.df [secondSet_vertAng.df$flight_angle == "LF_two_FEx_VA",],
+                               thirdSet_vertAng.df [thirdSet_vertAng.df$flight_angle == "LF_three_FEx_VA",],
+                               fourthSet_vertAng.df [fourthSet_vertAng.df$flight_angle == "LF_four_FEx_VA",],
+                               fifthSet_vertAng.df [fifthSet_vertAng.df$flight_angle == "LF_five_FEx_VA",])
+
+LF_lastEntry_betweenSet = rbind(firstSet_vertAng.df[firstSet_vertAng.df$flight_angle =="LF_one_LEn_VA",],
+                               secondSet_vertAng.df [secondSet_vertAng.df$flight_angle == "LF_two_LEn_VA",],
+                               thirdSet_vertAng.df [thirdSet_vertAng.df$flight_angle == "LF_three_LEn_VA",],
+                               fourthSet_vertAng.df [fourthSet_vertAng.df$flight_angle == "LF_four_LEn_VA",],
+                               fifthSet_vertAng.df [fifthSet_vertAng.df$flight_angle == "LF_five_LEn_VA",])
+
+TF_firstEntry_betweenSet = rbind(firstSet_vertAng.df[firstSet_vertAng.df$flight_angle =="TF_one_FEn_VA",],
+                               secondSet_vertAng.df [secondSet_vertAng.df$flight_angle == "TF_two_FEn_VA",],
+                               thirdSet_vertAng.df [thirdSet_vertAng.df$flight_angle == "TF_three_FEn_VA",],
+                               fourthSet_vertAng.df [fourthSet_vertAng.df$flight_angle == "TF_four_FEn_VA",],
+                               fifthSet_vertAng.df [fifthSet_vertAng.df$flight_angle == "TF_five_FEn_VA",])
+
+TF_lastEntry_betweenSet = rbind(firstSet_vertAng.df[firstSet_vertAng.df$flight_angle =="TF_one_LEn_VA",],
+                               secondSet_vertAng.df [secondSet_vertAng.df$flight_angle == "TF_two_LEn_VA",],
+                               thirdSet_vertAng.df [thirdSet_vertAng.df$flight_angle == "TF_three_LEn_VA",],
+                               fourthSet_vertAng.df [fourthSet_vertAng.df$flight_angle == "TF_four_LEn_VA",],
+                               fifthSet_vertAng.df [fifthSet_vertAng.df$flight_angle == "TF_five_LEn_VA",])
+
+```
+
+# Clutter data
+
+```{r}
+clutter_cornerData = read.csv(here(common_path,"clutterDsitAng_data.csv"))
+max_vertAngle = max(clutter_cornerData$vert_angle)
+min_vertAngle = min(clutter_cornerData$vert_angle)
+```
+## Plot_Vertical angle
+
+```{r}
+
+LF_firstExit_betweenSet$set <- factor(LF_firstExit_betweenSet$set , levels=c("one", "two", "three", "four","five"))
+
+fig1 = ggplot(LF_firstExit_betweenSet,aes(x = set, y = angle, fill = set)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() + scale_fill_brewer(palette = "Set1") + ylim(0,90) + 
+  geom_hline(yintercept = max_vertAngle, color = "#000066", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_vertAngle, color = "#FF0000", size = 1,linetype = "dashed")
+
+
+ggsave(here(common_path,"stat/between_set/LF_FEx_btnSet_VA.tiff"), width = 5, height = 4,fig1,  dpi=700)
+
+#2
+LF_lastEntry_betweenSet$set <- factor(LF_lastEntry_betweenSet$set , levels=c("one", "two", "three", "four","five"))
+
+fig2 = ggplot(LF_lastEntry_betweenSet,aes(x=set, y = angle, fill = set)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm(size = 2) +
+  scale_fill_brewer(palette = "Set1") + ylim(0,90) + 
+  geom_hline(yintercept = max_vertAngle, color = "#000066", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_vertAngle, color = "#FF0000", size = 1,linetype = "dashed")
+
+
+ggsave(here(common_path,"stat/between_set/LF_LEn_btnSet_VA.tiff"), width = 5, height = 4,fig2,  dpi=700)
+
+# 3
+TF_firstEntry_betweenSet$set <- factor(TF_firstEntry_betweenSet$set , levels=c("one", "two", "three", "four","five"))
+
+fig3 = ggplot(TF_firstEntry_betweenSet,aes(x=set, y = angle, fill = set)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +
+  scale_fill_brewer(palette = "Set1") + ylim(0,90) + 
+  geom_hline(yintercept = max_vertAngle, color = "#000066", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_vertAngle, color = "#FF0000", size = 1,linetype = "dashed")
+
+
+ggsave(here(common_path,"stat/between_set/TF_FEn_btnSet_VA.tiff"), width = 5, height = 4,fig3,  dpi=700)
+
+# 4
+TF_lastEntry_betweenSet$set <- factor(TF_lastEntry_betweenSet$set , levels=c("one", "two", "three", "four","five"))
+
+fig4 = ggplot(TF_lastEntry_betweenSet,aes(x=set, y = angle, fill = set)) + 
+  geom_boxplot(outlier.color="black") + geom_beeswarm() +
+  scale_fill_brewer(palette = "Set1") + ylim(0,90) + 
+  geom_hline(yintercept = max_vertAngle, color = "#000066", size = 1,linetype = "dashed") +
+  geom_hline(yintercept =  min_vertAngle, color = "#FF0000", size = 1,linetype = "dashed")
+
+
+
+ggsave(here(common_path,"stat/between_set/TF_LEn_btnSet_VA.tiff"), width = 5, height = 4,fig4,  dpi=700)
+
+
+```
+
+
+## Stat
+
+```{r}
+
+# 1 
+anova_LF_FEx_betSet = aov(angle~flight_angle,data = LF_firstExit_betweenSet)
+# 2
+anova_LF_LEn_betSet = aov(angle~flight_angle,data = LF_lastEntry_betweenSet)
+#3
+anova_TF_FEn_betSet = aov(angle~flight_angle,data = TF_firstEntry_betweenSet)
+#4
+anova_TF_LEn_betSet = aov(angle~flight_angle,data = TF_lastEntry_betweenSet)
+
+anova_result = c((summary(anova_LF_FEx_betSet)),
+                     (summary(anova_LF_LEn_betSet)),
+                     (summary(anova_TF_FEn_betSet)),
+                     (summary(anova_TF_LEn_betSet)))
+anova_title = rbind(cbind(rep("LF_FEx_HA",nrow(anova_LF_FEx_betSet))),
+                    cbind(rep("LF_LEn_HA",nrow(anova_LF_LEn_betSet))),
+                    cbind(rep("TF_FEn_HA",nrow(anova_TF_FEn_betSet))),
+                    cbind(rep("TF_LEn_HA",nrow(anova_TF_LEn_betSet))))
+
+```
+
+
+```{r}
+tk_LF_FEx_betSet = TukeyHSD(anova_LF_FEx_betSet)
+tk_LF_LEn_betSet = TukeyHSD(anova_LF_LEn_betSet)
+tk_TF_FEn_betSet = TukeyHSD(anova_TF_FEn_betSet)
+tk_TF_LEn_betSet = TukeyHSD(anova_TF_LEn_betSet)
+
+write.csv(tk_LF_FEx_betSet$flight_angle,
+          here(common_path,"stat/between_set/tuke_LF_firstExit.csv"))
+write.csv(tk_LF_LEn_betSet$flight_angle,
+          here(common_path,"stat/between_set/tuke_LF_lastEntry.csv"))
+write.csv(tk_TF_FEn_betSet$flight_angle,
+          here(common_path,"stat/between_set/tuke_TF_firstEntry.csv"))
+write.csv(tk_TF_LEn_betSet$flight_angle,
+          here(common_path,"stat/between_set/tuke_TF_lastEntry.csv"))
+
+
+tk_result = rbind(tk_LF_FEx_betSet$flight_angle, tk_LF_LEn_betSet$flight_angle, 
+                  tk_TF_FEn_betSet$flight_angle, tk_TF_LEn_betSet$flight_angle)
+
+titles = rbind(cbind(rep("LF_firstExit",nrow(tk_LF_FEx_betSet$flight_angle))),
+               cbind(rep("LF_lastEntry",nrow(tk_LF_LEn_betSet$flight_angle))),
+               cbind(rep("TF_firstEntry",nrow(tk_TF_FEn_betSet$flight_angle))),
+               cbind(rep("TF_lastEntry",nrow(tk_TF_LEn_betSet$flight_angle))))
+
+tk_result = data.frame(cbind(titles, tk_result))
+write.csv(tk_result,here(common_path,"stat/between_set/tukeys_compiled.csv"))
+```
+
+```{r}
+get_cld = function(data_sets){
+  MultComp <- multcompLetters(extract_p(data_sets))
+  set <- names(MultComp$Letters)
+  Labels <- MultComp$Letters
+  df <- data.frame(set, Labels)
+  return(df)
+  }
+
+
+cld_LF_FEx_betSet = get_cld(tk_LF_FEx_betSet$flight_angle)
+write.csv(cld_LF_FEx_betSet,
+          here(common_path,"stat/between_set/1_cld_LF_FEx_betSet.csv"))
+
+cld_LF_FEn_betSet = get_cld(tk_LF_LEn_betSet$flight_angle)
+write.csv(cld_LF_FEn_betSet,
+          here(common_path,"stat/between_set/2_cld_LF_FEn_betSet.csv"))
+
+cld_TF_FEn_betSet = get_cld(tk_TF_FEn_betSet$flight_angle)
+write.csv(cld_TF_FEn_betSet,
+          here(common_path,"stat/between_set/3_cld_TF_FEn_betSet.csv"))
+
+cld_TF_LEn_betSet = get_cld(tk_TF_LEn_betSet$flight_angle)
+write.csv(cld_TF_LEn_betSet,
+          here(common_path,"stat/between_set/4_cld_TF_LEn_betSet.csv"))
+```
+

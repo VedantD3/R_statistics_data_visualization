@@ -1,0 +1,155 @@
+---
+title: "height density plot"
+output: html_notebook
+---
+
+```{r clean r}
+rm(list = ls())
+
+```
+
+```{r library}
+library(nnls)
+library(Libra)
+library(dplyr) # fors stat
+library(psych)
+library(dunn.test)
+library(here)
+library(RVAideMemoire)
+library(rstatix)
+
+
+library(stats)
+library("report")
+library(multcomp)
+library(multcompView)
+
+# figure
+library(ggplot2)
+library(ggpubr)
+library(ggbeeswarm)
+library(here)
+
+library(hrbrthemes)
+library(patchwork)
+```
+
+```{r common_path}
+common_path = "E:/common_path"
+
+```
+
+```{r read_height_data}
+
+all_height_data = read.csv(here(common_path,"compiled_trajnv_heightData.csv"))
+
+```
+
+```{r function_for_normalization}
+normalization <- function(x){(x-min(x))/(max(x)-min(x))}
+```
+
+```{r remove_negative_data}
+for (ii in first_LF$z_coord){
+  if (ii < -0.05) {
+    # remove it from the list
+  }
+}
+```
+
+
+```{r first_set_learnin_an_test_flight}
+first_LF = all_height_data[all_height_data$flight == "learn" & all_height_data$set == "one",]
+min(first_LF$z_coord)
+first_LF$z_coord = normalization(first_LF$z_coord)
+
+first_LF_z_coord = ggplot(first_LF, aes(x=z_coord)) +
+  geom_histogram(bins = 100,colour="black",fill = "#69b3a2" , alpha=1) 
+
+ggsave(here(common_path,"stat/height/compiled_height/first_LF_z_coord.tiff"), width = 5, height = 4,first_LF_z_coord,dpi=700)
+
+first_TF = all_height_data[all_height_data$flight == "test" & all_height_data$set == "one",]
+first_TF$z_coord =  normalization(first_TF$z_coord)
+
+first_TF_z_coord = ggplot(first_TF, aes(x=z_coord)) +
+  geom_histogram(bins = 100,colour="black",fill = "#69b3a2" , alpha=1) 
+
+ggsave(here(common_path,"stat/height/compiled_height/first_TF_z_coord.tiff"), width = 5, height = 4,first_TF_z_coord,dpi=700)
+ 
+
+
+```
+```{r}
+### 2
+second_LF = all_height_data [all_height_data$flight == "learn" & all_height_data$set == "two",]
+second_LF$z_coord =  normalization (second_LF$z_coord)
+
+second_LF_z_coord = ggplot(second_LF, aes(x=z_coord)) +
+  geom_histogram(bins = 100,colour="black",fill = "#69b3a2" , alpha=1) + ylim(0,125000)
+
+ggsave(here(common_path,"stat/height/compiled_height/second_LF_z_coord.tiff"), width = 5, height = 4,second_LF_z_coord,dpi=700)
+
+second_TF = all_height_data [all_height_data$flight == "test" & all_height_data$set == "two",]
+second_TF$z_coord =  normalization (second_TF$z_coord)
+
+second_TF_z_coord = ggplot(second_TF, aes(x=z_coord)) +
+  geom_histogram(bins = 100,colour="black",fill = "#69b3a2" , alpha=1) 
+
+ggsave(here(common_path,"stat/height/compiled_height/second_TF_z_coord.tiff"), width = 5, height = 4,second_TF_z_coord,dpi=700)
+
+#### 3
+
+third_LF = all_height_data [all_height_data$flight == "learn" & all_height_data$set == "three",]
+third_LF$z_coord =  normalization (third_LF$z_coord)
+
+third_LF_z_coord = ggplot(third_LF, aes(x=z_coord)) +
+  geom_histogram(bins = 100,colour="black",fill = "#69b3a2" , alpha=1) + ylim(0,125000)
+
+ggsave(here(common_path,"stat/height/compiled_height/third_LF_z_coord.tiff"), width = 5, height = 4,third_LF_z_coord,dpi=700)
+
+third_TF = all_height_data [all_height_data$flight == "test" & all_height_data$set == "three",]
+third_TF$z_coord =  normalization (third_TF$z_coord)
+
+third_TF_z_coord = ggplot(third_TF, aes(x=z_coord)) +
+  geom_histogram(bins = 100,colour="black",fill = "#69b3a2" , alpha=1) 
+
+ggsave(here(common_path,"stat/height/compiled_height/third_TF_z_coord.tiff"), width = 5, height = 4,third_TF_z_coord,dpi=700)
+
+###
+
+four_LF = all_height_data [all_height_data$flight == "learn" & all_height_data$set == "four",]
+four_LF$z_coord =  normalization (four_LF$z_coord)
+
+four_LF_z_coord = ggplot(four_LF, aes(x=z_coord)) +
+  geom_histogram(bins = 100,colour="black",fill = "#69b3a2" , alpha=1) 
+
+ggsave(here(common_path,"stat/height/compiled_height/four_LF_z_coord.tiff"), width = 5, height = 4,four_LF_z_coord,dpi=700)
+
+four_TF = all_height_data [all_height_data$flight == "test" & all_height_data$set == "four",]
+four_TF$z_coord =  normalization (four_TF$z_coord)
+
+four_TF_z_coord = ggplot(four_TF, aes(x=z_coord)) +
+  geom_histogram(bins = 100,colour="black",fill = "#69b3a2" , alpha=1) 
+
+ggsave(here(common_path,"stat/height/compiled_height/four_TF_z_coord.tiff"), width = 5, height = 4,four_TF_z_coord,dpi=700)
+
+###
+five_LF = all_height_data [all_height_data$flight == "learn" & all_height_data$set == "five",]
+five_LF$z_coord =  normalization (five_LF$z_coord)
+
+five_LF_z_coord = ggplot(five_LF, aes(x=z_coord)) +
+  geom_histogram(bins = 100,colour="black",fill = "#69b3a2" , alpha=1) 
+
+ggsave(here(common_path,"stat/height/compiled_height/five_LF_z_coord.tiff"), width = 5, height = 4,five_LF_z_coord,dpi=700)
+
+five_TF = all_height_data [all_height_data$flight == "test" & all_height_data$set == "five",]
+five_TF$z_coord =  normalization (five_TF$z_coord)
+
+five_TF_z_coord = ggplot(five_TF, aes(x=z_coord)) +
+  geom_histogram(bins = 100,colour="black",fill = "#69b3a2" , alpha=1)
+
+ggsave(here(common_path,"stat/height/compiled_height/five_TF_z_coord.tiff"), width = 5, height = 4,five_TF_z_coord,dpi=700)
+
+```
+
+
